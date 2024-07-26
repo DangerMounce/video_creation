@@ -33,7 +33,7 @@ This repository contains a script for creating and downloading videos using the 
 Run the script with the following command:
 
 ```sh
-node app [filename]
+node app
 ```
 
 ## Script Overview
