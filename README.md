@@ -26,7 +26,7 @@ This repository contains a script for creating and downloading videos using the 
    API_KEY=your_synthesia_api_key
    ```
 
-4. **Ensure you have a `downloads` folder in the root directory or the script will create it automatically**.
+4. **Ensure you have a `downloads` folder and a `scripts` in the root directory or the script will create it automatically**.
 
 ## Usage
 
