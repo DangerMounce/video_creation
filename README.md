@@ -1,7 +1,7 @@
 ```markdown
 # Video Creation Script
 
-This repository contains a script for creating and downloading videos using the Synthesia API. The script creates a video, checks its status every 3 seconds, and downloads it once it's complete, saving it with a specific filename, as passed through as an argument when the script is run.
+This repository contains a script for creating and downloading videos using the Synthesia API. The script takes in all DOCX files as scripts, checks its status every 120 seconds, and downloads it once it's complete, saving it with the filename of the DOCX file.  It will do this with all the scripts until completed.
 
 ## Prerequisites
 
@@ -19,7 +19,7 @@ This repository contains a script for creating and downloading videos using the 
 
 2. **Install dependencies**:
    ```sh
-   npm install
+   npm install axios chalk dotenv fs inquirer log-update path url winston
    ```
 
 3. **Create a `.env` file in the root directory and add your Synthesia API key**:
@@ -34,7 +34,7 @@ This repository contains a script for creating and downloading videos using the 
 Run the script with the following command:
 
 ```sh
-node script [filename]
+node app [filename]
 ```
 
 ## Script Overview
@@ -44,8 +44,8 @@ The script performs the following steps:
 1. **Load environment variables**: Loads the API key from the `.env` file using the `dotenv` package.
 2. **Generate Video Data**: Prepares the video data to be sent to the Synthesia API.
 3. **Create Video**: Sends a request to the Synthesia API to create a video with the specified data.
-4. **Check Video Status**: Polls the Synthesia API every 3 seconds to check if the video is complete.
-5. **Download Video**: Once the video is complete, it downloads the video and saves it to the `downloads` folder with the filename `chris` and the appropriate file extension.
+4. **Check Video Status**: Polls the Synthesia API every 120 seconds to check if the video is complete.
+5. **Download Video**: Once the video is complete, it downloads the video and saves it to the `downloads` folder with the filename of the same name as the DOCX file and the appropriate file extension.
 
 ## Dependencies
 

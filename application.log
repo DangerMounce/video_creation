@@ -1,0 +1,38 @@
+2024-07-26 16:13:41 [warn]: Job queue is marked as a live run.
+2024-07-26 16:13:41 [info]: 2 script files found in scripts directory.
+2024-07-26 16:13:41 [info]: countScriptsIn(scripts) - 2 returned
+2024-07-26 16:13:47 [info]: User has confirmed job ok to process.
+2024-07-26 16:13:47 [info]: Title added to payload is test
+2024-07-26 16:13:47 [info]: Script added to payload
+2024-07-26 16:13:47 [info]: Test video status added to payload
+2024-07-26 16:13:47 [info]: Sending payload to Synthesia.
+2024-07-26 16:13:49 [response]: createdAt: 1722006828
+2024-07-26 16:13:49 [response]: id: e23cd72c-cea9-4fc0-be25-29619f98e24f
+2024-07-26 16:13:49 [response]: status: in_progress
+2024-07-26 16:13:49 [response]: title: test
+2024-07-26 16:13:49 [response]: visibility: private
+2024-07-26 16:13:49 [response]: Synthesia says video is in_progress
+2024-07-26 16:13:49 [info]: Checking again in 120 seconds.
+2024-07-26 16:15:49 [response]: Synthesia says video is in_progress
+2024-07-26 16:15:49 [info]: Checking again in 120 seconds.
+2024-07-26 16:17:49 [response]: Synthesia says video is complete
+2024-07-26 16:17:49 [response]: Synthesia says that the video is complete.
+2024-07-26 16:17:49 [response]: Download link is https://synthesia-ttv-data.s3.amazonaws.com/video_data/e23cd72c-cea9-4fc0-be25-29619f98e24f/transfers/rendered_video.mp4?response-content-disposition=attachment%3Bfilename%3D%22test.mp4%22&AWSAccessKeyId=AKIA32NGJ5TSTZY6HDVC&Signature=%2F8HCgKyCaRD498JHlXhuKpJLFS0%3D&Expires=1722028669
+2024-07-26 16:17:49 [info]: Video filename set as test.mp4
+2024-07-26 16:17:50 [info]: test.mp4 downloaded.
+2024-07-26 16:17:50 [info]: Title added to payload is test1
+2024-07-26 16:17:50 [info]: Script added to payload
+2024-07-26 16:17:50 [info]: Test video status added to payload
+2024-07-26 16:17:50 [info]: Sending payload to Synthesia.
+2024-07-26 16:17:51 [response]: createdAt: 1722007070
+2024-07-26 16:17:51 [response]: id: cf7ea9c2-ee0f-48ef-9b43-cb3900570ae0
+2024-07-26 16:17:51 [response]: status: in_progress
+2024-07-26 16:17:51 [response]: title: test1
+2024-07-26 16:17:51 [response]: visibility: private
+2024-07-26 16:17:51 [response]: Synthesia says video is in_progress
+2024-07-26 16:17:51 [info]: Checking again in 120 seconds.
+2024-07-26 16:19:52 [response]: Synthesia says video is complete
+2024-07-26 16:19:52 [response]: Synthesia says that the video is complete.
+2024-07-26 16:19:52 [response]: Download link is https://synthesia-ttv-data.s3.amazonaws.com/video_data/cf7ea9c2-ee0f-48ef-9b43-cb3900570ae0/transfers/rendered_video.mp4?response-content-disposition=attachment%3Bfilename%3D%22test1.mp4%22&AWSAccessKeyId=AKIA32NGJ5TSTZY6HDVC&Signature=kCOxiqJa9y%2BRKYvqFTc8eq5afs4%3D&Expires=1722028792
+2024-07-26 16:19:52 [info]: Video filename set as test1.mp4
+2024-07-26 16:19:52 [info]: test1.mp4 downloaded.
