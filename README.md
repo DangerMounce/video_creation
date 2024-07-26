@@ -50,6 +50,14 @@ The script performs the following steps:
 
 - axios: ^0.21.1
 - dotenv: ^10.0.0
+- chalk
+- dotenv
+- fs
+- inquirer
+- log-update
+- path
+- url
+- winston
 
 ## Contributing
 
