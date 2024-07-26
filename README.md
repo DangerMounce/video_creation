@@ -1,4 +1,3 @@
-```markdown
 # Video Creation Script
 
 This repository contains a script for creating and downloading videos using the Synthesia API. The script takes in all DOCX files as scripts, checks its status every 120 seconds, and downloads it once it's complete, saving it with the filename of the DOCX file.  It will do this with all the scripts until completed.
