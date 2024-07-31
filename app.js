@@ -129,6 +129,7 @@ async function yesOrNo(question) {
             process.exit(1)
         } else {
             logger.info('User has confirmed job ok to process.')
+            await delay(500)
             return
         }
     } catch (error) {
@@ -139,7 +140,7 @@ async function yesOrNo(question) {
 
 // This function creates the payload to send to Synthesia
 async function generateSynthesiaPayload(videoFileName, videoScript, testVideo) {
-    return {
+    const data = {
         test: testVideo,
         visibility: 'private',
         title: videoFileName,
@@ -152,12 +153,21 @@ async function generateSynthesiaPayload(videoFileName, videoScript, testVideo) {
                         longBackgroundContentMatchMode: 'trim'
                     }
                 },
-                avatar: '49dc8f46-8c08-45f1-8608-57069c173827',
+                avatar: 'bbbb99b6-52c1-4c28-8c61-e0b9abfa6f62', // '49dc8f46-8c08-45f1-8608-57069c173827',
                 background: 'workspace-media.a0f2bc02-b51f-4d88-8ea6-c42dedc078f1',
                 scriptText: videoScript
             }
         ]
     };
+
+    if (data.test) {
+        logger.info(`Video is a test and will be watermarked`)
+    } else {
+        logger.warn(`Video is NOT a test.`)
+    }
+    logger.info(`Avatar ID is ${data.input[0].avatar}`)
+    logger.info(`Background is ${data.input[0].background}`)
+    return data
 }
 
 // This function checks for .DS_Store file and deletes it
@@ -168,6 +178,7 @@ async function deleteDSStoreFile(directory) {
         if (fs.existsSync(dsStoreFilePath)) {
             await fs.promises.unlink(dsStoreFilePath);
             logger.warn('.DS_Store file found and deleted')
+            await delay(500)
         } else {
             logger.info('.DS_Store file not found')
         }
@@ -189,8 +200,11 @@ async function sendPayloadToSynthesia(videoData) {
         });
         return response.data;
     } catch (error) {
-        console.error('Error creating video:', error);
-        throw error;
+        logger.response(error.response.data.context)
+        await delay((300))
+        // console.error('Error creating video:', error);
+        process.exit(1)
+        throw error
     }
 }
 
@@ -269,11 +283,15 @@ async function processScripts() {
         const videoFileName = videoData[i].videoFileName
         const videoScript = videoData[i].videoScript
         logger.info(`Title added to payload is ${videoFileName}`)
+        await delay(500)
         logger.info('Script added to payload')
+        await delay(500)
         logger.info(`Test video status added to payload`)
-        logger.info('Sending payload to Synthesia.')
+        await delay(500)
         // Send the video payload
         const data = await generateSynthesiaPayload(videoFileName, videoScript, testVideo)
+        logger.info('Sending payload to Synthesia.')
+        await delay(500)
         const synthesiaResponse = await sendPayloadToSynthesia(data)
         logger.response(`createdAt: ${synthesiaResponse.createdAt}`)
         logger.response(`id: ${synthesiaResponse.id}`)
