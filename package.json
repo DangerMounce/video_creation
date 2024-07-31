@@ -15,7 +15,7 @@
     "dotenv": "^16.4.5",
     "fs": "^0.0.1-security",
     "inquirer": "^10.1.2",
-    "log-update": "^6.0.0",
+    "log-update": "^6.1.0",
     "path": "^0.12.7",
     "url": "^0.11.3",
     "winston": "^3.13.1"

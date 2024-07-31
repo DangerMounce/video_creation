@@ -23,6 +23,12 @@ const __dirname = path.dirname(__filename);
 const apiKey = process.env.API_KEY;
 const apiURL = 'https://api.synthesia.io/v2/videos';
 
+const args = process.argv.slice(2);
+const instruction = args[0]
+const uuid = args[1]
+console.clear()
+
+
 // This function confirms if video should be a test
 async function isTestVideo() {
     console.clear('')
@@ -154,6 +160,23 @@ async function generateSynthesiaPayload(videoFileName, videoScript, testVideo) {
     };
 }
 
+// This function checks for .DS_Store file and deletes it
+async function deleteDSStoreFile(directory) {
+    const dsStoreFilePath = path.join(directory, '.DS_Store');
+
+    try {
+        if (fs.existsSync(dsStoreFilePath)) {
+            await fs.promises.unlink(dsStoreFilePath);
+            logger.warn('.DS_Store file found and deleted')
+        } else {
+            logger.info('.DS_Store file not found')
+        }
+    } catch (error) {
+        logger.warn(`Error deleting .DS_Store file: ${error.message}`)
+        console.error;
+    }
+}
+
 // This function sends the payload to Synthesia to create the video.
 async function sendPayloadToSynthesia(videoData) {
     try {
@@ -237,12 +260,12 @@ async function processScripts() {
     if (testVideo) {
         console.log(chalk.bold.green(`\(^-^)/ Test video job \(^-^)/`))
     } else {
-        console.log(chalk.bold.red(`WARNING: 【ツ】 LIVE VIDEO JOB 【ツ】` ))
+        console.log(chalk.bold.red(`WARNING: 【ツ】 LIVE VIDEO JOB 【ツ】`))
     }
     await yesOrNo(`Ready to process scripts with Synthesia?`)
-
     // Loops through the files in scripts
     for (let i = 0; i < videoData.length; i++) {
+        await deleteDSStoreFile('scripts')
         const videoFileName = videoData[i].videoFileName
         const videoScript = videoData[i].videoScript
         logger.info(`Title added to payload is ${videoFileName}`)
@@ -281,39 +304,51 @@ async function processScripts() {
     }
 }
 
-// const synthesiaResponse = {
-//     createdAt: 1721993687,
-//     id: '6446da43-d605-4e4f-a3b6-03cfacb9ef18',
-//     lastUpdatedAt: 1721993688,
-//     status: 'in_progress',
-//     title: 'test',
-//     visibility: 'private'
-// }
+// This function deletes the video using it's UUID
+async function deleteVideo(videoUUID) {
+    logger.info(`Sending request to delete video ${videoUUID}`)
+    const url = `https://api.synthesia.io/v2/videos/${videoUUID}`;
 
+    // Set up the request headers
+    const headers = {
+        'accept': 'application/json',
+        'Authorization': apiKey
+    };
 
-// const completedVid = {
-//     createdAt: 1721999851
-//     download: 'https://synthesia-ttv-data.s3.amazonaws.com/video_data/394ba5c5-4b40-4a6f-aa1d-d45a761e5862/transfers/rendered_video.mp4?response-content-disposition=attachment%3Bfilename%3D%22test.mp4%22&AWSAccessKeyId=AKIA32NGJ5TSTZY6HDVC&Signature=smgzy0t90dZXfuCPoyXFKuKv2lA%3D&Expires=1722021818',
-//     duration: '0:00:06.605',
-//     id: '394ba5c5-4b40-4a6f-aa1d-d45a761e5862',
-//     lastUpdatedAt: 1721999917,
-//     status: 'complete',
-//     title: 'test',
-//     visibility: 'private'
-// }
+    // Send DELETE request
+    axios.delete(url, { headers })
+        .then(response => {
+            logger.response('***', response.status);
+            logger.info(`Response from Synthesia suggests video ${videoUUID} is deleted.`)
+        })
+        .catch(error => {
+            if (error.response) {
+                // The request was made and the server responded with a status code
+                logger.response(`Error response code ${error.response.status}`)
+                logger.response(`Error message is ${error.response.statusText}`)
+            } else if (error.request) {
+                // The request was made but no response was received
+                logger.error('Error request:', error.request);
+            } else {
+                // Something happened in setting up the request that triggered an Error
+                logger.error('Error message:', error.message);
+            }
+        });
+}
 
-// const pendingVid = {
-//     createdAt: 1722000327,
-//     id: '5fde989f-6e09-4bf0-9f8c-3a3d416c78c1',
-//     lastUpdatedAt: 1722000333,
-//     status: 'in_progress',
-//     title: 'test',
-//     visibility: 'private'
-// }
+if (args.length > 0) {
+    if (instruction != "del") {
+        logger.error(`${instruction} isn't a valid instruction`)
+        await delay(3000)
+        process.exit(1)
+    } else if (args.length > 2) {
+        logger.error(`There seems to be more than uuid:"${uuid}" here.`)
+        await delay(3000)
+        process.exit(1)
+    } else {
+        deleteVideo(uuid)
+    }
+} else {
+    processScripts()
+}
 
-
-processScripts()
-
-// const videoStatus = await getVideoStatus('5fde989f-6e09-4bf0-9f8c-3a3d416c78c1')
-// logger.response(`Video status is: ${videoStatus.status}`)
-// console.log(videoStatus)
