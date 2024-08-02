@@ -63,8 +63,7 @@ async function countScriptsIn(directory) {
     try {
         const files = await readdir(directory);
         const docFiles = files.filter(file => extname(file).toLowerCase() === '.docx');
-        logger.info(`${docFiles.length} script files found in ${directory} directory.`)
-        logger.info(`countScriptsIn(${directory}) - ${docFiles.length} returned`)
+        logger.error(`${docFiles.length} script files found in ${directory} directory.`)
         return docFiles.length;
     } catch (error) {
         logger.error(`function countScriptsIn error - ${error}`)
@@ -285,9 +284,15 @@ async function processScripts() {
     const videoData = await getVideoData();
     console.clear('')
     if (testVideo) {
-        console.log(chalk.bold.green(`\(^-^)/ Test video job \(^-^)/`))
+
+        console.log(chalk.bgGreen('               TEST RUN               '))
+        console.log('')
+        logger.info('Job flagged as a test run')
     } else {
-        console.log(chalk.bold.red(`WARNING: 【ツ】 LIVE VIDEO JOB 【ツ】`))
+
+        console.log(chalk.white.bgRed(`               LIVE RUN              `))
+        console.log('')
+        logger.warn('JOB IS FLAGGED AS A LIVE RUN')
     }
     await yesOrNo(`Ready to process scripts with Synthesia?`)
     // Loops through the files in scripts
@@ -411,7 +416,7 @@ async function listVideos(uuid) {
 
 
         videoListAndIds.forEach(entry => {
-            logger.response(`${entry.index}> ${entry.id} - Title: "${entry.title}" (${entry.duration})`)
+            logger.response(`${entry.index}> ${entry.id} - ${entry.index}> "${entry.title}" (${entry.duration})`)
         })
 
         return videoListAndIds
@@ -464,6 +469,8 @@ switch (instruction) {
             process.exit(1)
         } else {
             const videoListData = await videoList(100)
+            console.log(chalk.white.bgRed(`               DELETE REQUEST              `))
+            console.log('')
             logger.warn(`Delete request for ${videoListData[uuid - 1].id} - "${videoListData[uuid - 1].title}"`)
             await yesOrNo('Are you sure?')
             deleteVideo(videoListData[uuid - 1].id)
