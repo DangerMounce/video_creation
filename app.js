@@ -368,7 +368,7 @@ async function deleteVideo(videoUUID) {
 
 // This function deletes the video using it's UUID
 async function updateVideo(videoUUID, newTitleOfVideo) {
-    logger.info(`Sending request to update title of video ${videoUUID}`);
+    logger.info(`Sending request to update title of video ${videoUUID} to "${newTitleOfVideo}"`);
  
 
     const options = {
@@ -385,8 +385,7 @@ async function updateVideo(videoUUID, newTitleOfVideo) {
       axios
         .request(options)
         .then(function (response) {
-            logger.response(`Request ${response.status} - new title is "${response.title}"`)
-          console.log(response.data);
+            logger.response(`Code ${response.status} - new title is "${newTitleOfVideo}"`)
         })
         .catch(function (error) {
           logger.error(error);
@@ -458,7 +457,7 @@ async function videoList(uuid) {
 
 
 switch (instruction) {
-    case "/d":
+    case "/r":
         if (!uuid) {
             logger.error('Need video index to send delete request')
             await delay(3000)
@@ -482,7 +481,7 @@ switch (instruction) {
             await delay(3000)
             process.exit(1)
         } else {
-            const videoListData = await videoList(10)
+            const videoListData = await videoList(100)
 
             logger.info(`Requesting status of ${videoListData[uuid - 1].id} from Synthesia`)
             const videoInfo = await getVideoStatus(videoListData[uuid - 1].id)
