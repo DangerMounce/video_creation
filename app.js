@@ -25,7 +25,13 @@ const apiURL = 'https://api.synthesia.io/v2/videos';
 
 const args = process.argv.slice(2);
 const instruction = args[0]
-const uuid = args[1]
+let uuid = args[1]
+if (args[0]) {
+    logger.info(`Instruction is ${instruction}`)
+}
+if (args[1]) {
+    logger.info(`Index / UUID is ${uuid}`)
+}
 console.clear()
 
 
@@ -146,14 +152,20 @@ async function generateSynthesiaPayload(videoFileName, videoScript, testVideo) {
         title: videoFileName,
         input: [
             {
-                avatarSettings: { horizontalAlign: 'center', scale: 1, style: 'rectangular', seamless: false },
+                avatarSettings: {
+                    horizontalAlign: 'center',
+                    scale: 1,
+                    style: 'rectangular',
+                    seamless: false,
+                    voice: '3243108c-9337-48b0-b288-4f7ca9f2bec1'
+                },
                 backgroundSettings: {
                     videoSettings: {
                         shortBackgroundContentMatchMode: 'freeze',
                         longBackgroundContentMatchMode: 'trim'
                     }
                 },
-                avatar: 'bbbb99b6-52c1-4c28-8c61-e0b9abfa6f62', // '49dc8f46-8c08-45f1-8608-57069c173827',
+                avatar: 'fb4aeeb6-b8e2-424e-9631-3900ded817f7', // '49dc8f46-8c08-45f1-8608-57069c173827',
                 background: 'workspace-media.a0f2bc02-b51f-4d88-8ea6-c42dedc078f1',
                 scriptText: videoScript
             }
@@ -200,7 +212,8 @@ async function sendPayloadToSynthesia(videoData) {
         });
         return response.data;
     } catch (error) {
-        logger.response(error.response.data.context)
+        logger.response(`Something wasn't right in the payload`, error.response.data.context)
+        console.log(error.response.data)
         await delay((300))
         // console.error('Error creating video:', error);
         process.exit(1)
@@ -219,8 +232,11 @@ async function getVideoStatus(videoId) {
         });
         return response.data;
     } catch (error) {
-        console.error('Error getting video status:', error);
-        throw error;
+        logger.response(`Error in getting the video status`)
+        await delay(200)
+        logger.response(error.response.data.context)
+        await delay(1000)
+        process.exit(1)
     }
 }
 
@@ -354,19 +370,123 @@ async function deleteVideo(videoUUID) {
         });
 }
 
-if (args.length > 0) {
-    if (instruction != "del") {
-        logger.error(`${instruction} isn't a valid instruction`)
-        await delay(3000)
+async function listVideos(uuid) {
+    logger.info(`Sending list request to Synthesia`)
+    try {
+        const response = await axios.get(`https://api.synthesia.io/v2/videos?limit=${uuid}&offset=0`, {
+            headers: {
+                accept: 'application/json',
+                'content-type': 'application/json',
+                Authorization: apiKey
+            }
+        });
+        const videoListAndIds = response.data.videos.map((video, index) => ({
+            index: index + 1,
+            title: video.title,
+            id: video.id
+        }));
+
+
+        videoListAndIds.forEach(entry => {
+            logger.response(`${entry.index}> ${entry.id} - Title: "${entry.title}"`)
+        })
+
+        return videoListAndIds
+
+    } catch (error) {
+        logger.response(`Something wasn't right in the request`)
+        console.log(error.response.data)
+        await delay((300))
+        // console.error('Error creating video:', error);
         process.exit(1)
-    } else if (args.length > 2) {
-        logger.error(`There seems to be more than uuid:"${uuid}" here.`)
-        await delay(3000)
-        process.exit(1)
-    } else {
-        deleteVideo(uuid)
+        throw error
     }
-} else {
-    processScripts()
 }
+
+async function videoList(uuid) {
+    try {
+        const response = await axios.get(`https://api.synthesia.io/v2/videos?limit=${uuid}&offset=0`, {
+            headers: {
+                accept: 'application/json',
+                'content-type': 'application/json',
+                Authorization: apiKey
+            }
+        });
+        const videoListAndIds = response.data.videos.map((video, index) => ({
+            index: index + 1,
+            title: video.title,
+            id: video.id
+        }));
+
+        return videoListAndIds
+
+    } catch (error) {
+        logger.response(`Something wasn't right in the request`)
+        console.log(error.response.data)
+        await delay((300))
+        // console.error('Error creating video:', error);
+        process.exit(1)
+        throw error
+    }
+}
+
+
+switch (instruction) {
+    case "/d":
+        if (!uuid) {
+            logger.error('Need video UUID to send delete request')
+            await delay(3000)
+            process.exit(1)
+        } else {
+            deleteVideo(uuid)
+        }
+        break;
+    case "/l":
+        if (!uuid) {
+            uuid = 20
+        }
+        await listVideos(uuid)
+        break;
+    case "/s":
+        if (!uuid) {
+            logger.error('Need video UUID to get a video status')
+            await delay(3000)
+            process.exit(1)
+        } else {
+            logger.info(`Requesting status of ${uuid} from Synthesia`)
+            const videoInfo = await getVideoStatus(uuid)
+            logger.response(`Video Title: ${videoInfo.title}`)
+            await delay(500)
+            logger.response(`Status is ${videoInfo.status}`)
+        }
+        break;
+    case "/dl":
+        if (!uuid) {
+            logger.error('Video index is missing')
+            await delay(3000)
+            process.exit(1)
+        } else {
+            const videoListData = await videoList(10)
+            const videoInfo = await getVideoStatus(videoListData[uuid-1].id)
+            logger.info(`Requesting video data of ${uuid} from Synthesia`)
+            logger.response(`Video Title: ${videoInfo.title}`)
+            await delay(500)
+            if (videoInfo.status != "complete") {
+                logger.response(`Video status is ${videoInfo.status} - can't download the video yet.`)
+                await delay(1000)
+                process.exit(1)
+            } else {
+                logger.response(`Status is ${videoInfo.status}`)
+                logger.response(`Download URL: ${videoInfo.download}`)
+                logger.response(`ID: ${videoInfo.id}`)
+                await downloadVideo(videoInfo.download, `${videoInfo.id}.mp4`)
+            }
+        }
+        break;
+    default:
+        processScripts()
+        break;
+}
+
+
 
