@@ -26,13 +26,8 @@ const apiURL = 'https://api.synthesia.io/v2/videos';
 const args = process.argv.slice(2);
 const instruction = args[0]
 let uuid = args[1]
-if (args[0]) {
-    logger.info(`Instruction is ${instruction}`)
-}
-if (args[1]) {
-    logger.info(`Index / UUID is ${uuid}`)
-}
-console.clear()
+const newTitle = args[2]
+
 
 
 // This function confirms if video should be a test
@@ -132,6 +127,8 @@ async function yesOrNo(question) {
 
         const confirmation = answers.confirmation;
         if (!confirmation) {
+            logger.info('User aborted job')
+            await delay(1000)
             process.exit(1)
         } else {
             logger.info('User has confirmed job ok to process.')
@@ -352,8 +349,7 @@ async function deleteVideo(videoUUID) {
     // Send DELETE request
     axios.delete(url, { headers })
         .then(response => {
-            logger.response('***', response.status);
-            logger.info(`Response from Synthesia suggests video ${videoUUID} is deleted.`)
+            logger.response(`Video ${videoUUID} is deleted.`)
         })
         .catch(error => {
             if (error.response) {
@@ -370,6 +366,33 @@ async function deleteVideo(videoUUID) {
         });
 }
 
+// This function deletes the video using it's UUID
+async function updateVideo(videoUUID, newTitleOfVideo) {
+    logger.info(`Sending request to update title of video ${videoUUID}`);
+ 
+
+    const options = {
+        method: 'PATCH',
+        url: `https://api.synthesia.io/v2/videos/${videoUUID}`,
+        headers: {
+          accept: 'application/json',
+          'content-type': 'application/json',
+          Authorization: apiKey
+        },
+        data: {title: newTitleOfVideo}
+      };
+      
+      axios
+        .request(options)
+        .then(function (response) {
+            logger.response(`Request ${response.status} - new title is "${response.title}"`)
+          console.log(response.data);
+        })
+        .catch(function (error) {
+          logger.error(error);
+        });
+}
+
 async function listVideos(uuid) {
     logger.info(`Sending list request to Synthesia`)
     try {
@@ -383,12 +406,13 @@ async function listVideos(uuid) {
         const videoListAndIds = response.data.videos.map((video, index) => ({
             index: index + 1,
             title: video.title,
-            id: video.id
+            id: video.id,
+            duration: video.duration
         }));
 
 
         videoListAndIds.forEach(entry => {
-            logger.response(`${entry.index}> ${entry.id} - Title: "${entry.title}"`)
+            logger.response(`${entry.index}> ${entry.id} - Title: "${entry.title}" (${entry.duration})`)
         })
 
         return videoListAndIds
@@ -403,6 +427,7 @@ async function listVideos(uuid) {
     }
 }
 
+
 async function videoList(uuid) {
     try {
         const response = await axios.get(`https://api.synthesia.io/v2/videos?limit=${uuid}&offset=0`, {
@@ -415,7 +440,8 @@ async function videoList(uuid) {
         const videoListAndIds = response.data.videos.map((video, index) => ({
             index: index + 1,
             title: video.title,
-            id: video.id
+            id: video.id,
+            duration: video.duration
         }));
 
         return videoListAndIds
@@ -434,11 +460,14 @@ async function videoList(uuid) {
 switch (instruction) {
     case "/d":
         if (!uuid) {
-            logger.error('Need video UUID to send delete request')
+            logger.error('Need video index to send delete request')
             await delay(3000)
             process.exit(1)
         } else {
-            deleteVideo(uuid)
+            const videoListData = await videoList(100)
+            logger.warn(`Delete request for ${videoListData[uuid - 1].id} - "${videoListData[uuid - 1].title}"`)
+            await yesOrNo('Are you sure?')
+            deleteVideo(videoListData[uuid - 1].id)
         }
         break;
     case "/l":
@@ -449,12 +478,14 @@ switch (instruction) {
         break;
     case "/s":
         if (!uuid) {
-            logger.error('Need video UUID to get a video status')
+            logger.error('Need video index to get a video status')
             await delay(3000)
             process.exit(1)
         } else {
-            logger.info(`Requesting status of ${uuid} from Synthesia`)
-            const videoInfo = await getVideoStatus(uuid)
+            const videoListData = await videoList(10)
+
+            logger.info(`Requesting status of ${videoListData[uuid - 1].id} from Synthesia`)
+            const videoInfo = await getVideoStatus(videoListData[uuid - 1].id)
             logger.response(`Video Title: ${videoInfo.title}`)
             await delay(500)
             logger.response(`Status is ${videoInfo.status}`)
@@ -466,9 +497,9 @@ switch (instruction) {
             await delay(3000)
             process.exit(1)
         } else {
-            const videoListData = await videoList(10)
-            const videoInfo = await getVideoStatus(videoListData[uuid-1].id)
-            logger.info(`Requesting video data of ${uuid} from Synthesia`)
+            const videoListData = await videoList(100)
+            const videoInfo = await getVideoStatus(videoListData[uuid - 1].id)
+            logger.info(`Requesting video data of ${videoListData[uuid - 1].id} from Synthesia`)
             logger.response(`Video Title: ${videoInfo.title}`)
             await delay(500)
             if (videoInfo.status != "complete") {
@@ -479,8 +510,29 @@ switch (instruction) {
                 logger.response(`Status is ${videoInfo.status}`)
                 logger.response(`Download URL: ${videoInfo.download}`)
                 logger.response(`ID: ${videoInfo.id}`)
-                await downloadVideo(videoInfo.download, `${videoInfo.id}.mp4`)
+                try {
+                    let downloadedVideoFileName = videoInfo.title.replace(/\s+/g, '');
+                    await downloadVideo(videoInfo.download, `${downloadedVideoFileName}.mp4`)
+                } catch (error) {
+                    logger.warn(`Filename invalid - using UUID instead`)
+                    await downloadVideo(videoInfo.download, `${videoListData[uuid - 1].id}.mp4`)
+                }
+
+
             }
+        }
+        break;
+    case "/u":
+        if (!newTitle) {
+            logger.error(`The new title is missing`)
+            await delay(1000)
+            process.exit(1)
+        } else {
+            const videoListData = await videoList(100)
+            const videoInfo = await getVideoStatus(videoListData[uuid - 1].id)
+            logger.info(`Requesting video data of ${videoListData[uuid - 1].id} from Synthesia`)
+            logger.response(`Video Title: ${videoInfo.title}`)
+            await updateVideo(videoListData[uuid - 1].id, newTitle)
         }
         break;
     default:
