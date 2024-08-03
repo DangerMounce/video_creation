@@ -179,7 +179,7 @@ async function downloadVideo(url, filename) {
                 resolve();
             }
         });
-        logger.info(`${filename} downloaded.`)
+        logger.synthesia(`${filename} downloaded.`)
     });
 }
 
