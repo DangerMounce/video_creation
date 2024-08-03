@@ -8,17 +8,17 @@ const customLevels = {
     fatal: 0,
     error: 1,
     warn: 2,
-    info: 3,
-    response: 4,
-    trace: 5
+    app_says: 3,
+    synthesia_response: 4,
+    user_message: 5
   },
   colors: {
     fatal: 'red',
     error: 'red',
     warn: 'yellow',
-    info: 'green',
-    response: 'blue',
-    trace: 'magenta'
+    app_says: 'green',
+    synthesia_response: 'blue',
+    user_message: 'magenta'
   }
 };
 
@@ -33,7 +33,7 @@ const customFormat = printf(({ level, message, timestamp }) => {
 // Create logger
 const logger = createLogger({
   levels: customLevels.levels,
-  level: 'trace', // Set the default logging level to the lowest custom level
+  level: 'user_message', // Set the default logging level to the lowest custom level
   transports: [
     new transports.Console({
       format: combine(

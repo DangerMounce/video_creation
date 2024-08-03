@@ -45,9 +45,9 @@ async function isTestVideo() {
 
         const confirmation = answers.confirmation;
         if (confirmation) {
-            logger.info('Job queue is marked as a test run.')
+            logger.user_message('Job queue is marked as a test run.')
         } else {
-            logger.warn('Job queue is marked as a live run.')
+            logger.user_message('Job queue is marked as a live run.')
         }
         return confirmation
 
@@ -126,11 +126,11 @@ async function yesOrNo(question) {
 
         const confirmation = answers.confirmation;
         if (!confirmation) {
-            logger.info('User aborted job')
+            logger.user_message('Job aborted')
             await delay(1000)
             process.exit(1)
         } else {
-            logger.info('User has confirmed job ok to process.')
+            logger.user_message('Job is ok to proceed')
             await delay(500)
             return
         }
@@ -169,12 +169,12 @@ async function generateSynthesiaPayload(videoFileName, videoScript, testVideo) {
     };
 
     if (data.test) {
-        logger.info(`Video is a test and will be watermarked`)
+        logger.app_says(`Video is a test and will be watermarked`)
     } else {
         logger.warn(`Video is NOT a test.`)
     }
-    logger.info(`Avatar ID is ${data.input[0].avatar}`)
-    logger.info(`Background is ${data.input[0].background}`)
+    logger.app_says(`Avatar ID is ${data.input[0].avatar}`)
+    logger.app_says(`Background is ${data.input[0].background}`)
     return data
 }
 
@@ -188,7 +188,7 @@ async function deleteDSStoreFile(directory) {
             logger.warn('.DS_Store file found and deleted')
             await delay(500)
         } else {
-            logger.info('.DS_Store file not found')
+            logger.app_says('.DS_Store file not found')
         }
     } catch (error) {
         logger.warn(`Error deleting .DS_Store file: ${error.message}`)
@@ -201,14 +201,14 @@ async function sendPayloadToSynthesia(videoData) {
     try {
         const response = await axios.post(apiURL, videoData, {
             headers: {
-                accept: 'application/json',
-                'content-type': 'application/json',
+                accept: 'app_sayslication/json',
+                'content-type': 'app_sayslication/json',
                 Authorization: apiKey
             }
         });
         return response.data;
     } catch (error) {
-        logger.response(`Something wasn't right in the payload`, error.response.data.context)
+        logger.synthesia_response(`Something wasn't right in the payload`, error.response.data.context)
         console.log(error.response.data)
         await delay((300))
         // console.error('Error creating video:', error);
@@ -222,15 +222,15 @@ async function getVideoStatus(videoId) {
     try {
         const response = await axios.get(`${apiURL}/${videoId}`, {
             headers: {
-                accept: 'application/json',
+                accept: 'app_sayslication/json',
                 Authorization: apiKey
             }
         });
         return response.data;
     } catch (error) {
-        logger.response(`Error in getting the video status`)
+        logger.synthesia_response(`Error in getting the video status`)
         await delay(200)
-        logger.response(error.response.data.context)
+        logger.synthesia_response(error.response.data.context)
         await delay(1000)
         process.exit(1)
     }
@@ -257,7 +257,7 @@ async function downloadVideo(url, filename) {
         method: 'GET',
         responseType: 'stream'
     });
-    logger.info(`${filename} downloaded.`)
+    logger.app_says(`${filename} downloaded.`)
     return new Promise((resolve, reject) => {
         const writer = fs.createWriteStream(filePath);
         response.data.pipe(writer);
@@ -287,7 +287,7 @@ async function processScripts() {
 
         console.log(chalk.bgGreen('               TEST RUN               '))
         console.log('')
-        logger.info('Job flagged as a test run')
+        logger.app_says('Job flagged as a test run')
     } else {
 
         console.log(chalk.white.bgRed(`               LIVE RUN              `))
@@ -300,72 +300,72 @@ async function processScripts() {
         await deleteDSStoreFile('scripts')
         const videoFileName = videoData[i].videoFileName
         const videoScript = videoData[i].videoScript
-        logger.info(`Title added to payload is ${videoFileName}`)
+        logger.app_says(`Title added to payload is ${videoFileName}`)
         await delay(500)
-        logger.info('Script added to payload')
+        logger.app_says('Script added to payload')
         await delay(500)
-        logger.info(`Test video status added to payload`)
+        logger.app_says(`Test video status added to payload`)
         await delay(500)
         // Send the video payload
         const data = await generateSynthesiaPayload(videoFileName, videoScript, testVideo)
-        logger.info('Sending payload to Synthesia.')
+        logger.app_says('Sending payload to Synthesia.')
         await delay(500)
         const synthesiaResponse = await sendPayloadToSynthesia(data)
-        logger.response(`createdAt: ${synthesiaResponse.createdAt}`)
-        logger.response(`id: ${synthesiaResponse.id}`)
-        logger.response(`status: ${synthesiaResponse.status}`)
-        logger.response(`title: ${synthesiaResponse.title}`)
-        logger.response(`visibility: ${synthesiaResponse.visibility}`)
+        logger.synthesia_response(`createdAt: ${synthesiaResponse.createdAt}`)
+        logger.synthesia_response(`id: ${synthesiaResponse.id}`)
+        logger.synthesia_response(`status: ${synthesiaResponse.status}`)
+        logger.synthesia_response(`title: ${synthesiaResponse.title}`)
+        logger.synthesia_response(`visibility: ${synthesiaResponse.visibility}`)
 
         // Now we need keep checking the status of the video
 
         let video;
         while (true) {
             video = await getVideoStatus(synthesiaResponse.id)
-            logger.response(`Synthesia says video is ${video.status}`)
+            logger.synthesia_response(`Synthesia says video is ${video.status}`)
             if (video.status === 'complete') {
-                logger.response(`Synthesia says that the video is complete.`)
-                logger.response(`Download link is ${video.download}`)
+                logger.synthesia_response(`Synthesia says that the video is complete.`)
+                logger.synthesia_response(`Download link is ${video.download}`)
                 const fileExtension = path.extname(new URL(video.download).pathname);
                 const filename = `${videoFileName}${fileExtension}`;
-                logger.info(`Video filename set as ${filename}`)
+                logger.app_says(`Video filename set as ${filename}`)
 
                 // Download the video
                 await downloadVideo(video.download, filename)
                 break;
             }
-            logger.info(`Checking again in 120 seconds.`)
             await delay(120000); // wait for 120 seconds before checking again.
+            logger.app_says('Asking Synthesia for an update.')
         }
     }
 }
 
 // This function deletes the video using it's UUID
 async function deleteVideo(videoUUID) {
-    logger.info(`Sending request to delete video ${videoUUID}`)
+    logger.user_message(`Delete video ${videoUUID}`)
     const url = `https://api.synthesia.io/v2/videos/${videoUUID}`;
 
     // Set up the request headers
     const headers = {
-        'accept': 'application/json',
+        'accept': 'app_sayslication/json',
         'Authorization': apiKey
     };
 
     // Send DELETE request
     axios.delete(url, { headers })
         .then(response => {
-            logger.response(`Video ${videoUUID} is deleted.`)
+            logger.synthesia_response(`Video ${videoUUID} is deleted.`)
         })
         .catch(error => {
             if (error.response) {
                 // The request was made and the server responded with a status code
-                logger.response(`Error response code ${error.response.status}`)
-                logger.response(`Error message is ${error.response.statusText}`)
+                logger.synthesia_response(`Error response code ${error.response.status}`)
+                logger.synthesia_response(`Error message is ${error.response.statusText}`)
             } else if (error.request) {
                 // The request was made but no response was received
                 logger.error('Error request:', error.request);
             } else {
-                // Something happened in setting up the request that triggered an Error
+                // Something happ_saysened in setting up the request that triggered an Error
                 logger.error('Error message:', error.message);
             }
         });
@@ -373,15 +373,15 @@ async function deleteVideo(videoUUID) {
 
 // This function deletes the video using it's UUID
 async function updateVideo(videoUUID, newTitleOfVideo) {
-    logger.info(`Sending request to update title of video ${videoUUID} to "${newTitleOfVideo}"`);
+    logger.user_message(`Update title of video ${videoUUID} to "${newTitleOfVideo}"`);
  
 
     const options = {
         method: 'PATCH',
         url: `https://api.synthesia.io/v2/videos/${videoUUID}`,
         headers: {
-          accept: 'application/json',
-          'content-type': 'application/json',
+          accept: 'app_sayslication/json',
+          'content-type': 'app_sayslication/json',
           Authorization: apiKey
         },
         data: {title: newTitleOfVideo}
@@ -390,7 +390,7 @@ async function updateVideo(videoUUID, newTitleOfVideo) {
       axios
         .request(options)
         .then(function (response) {
-            logger.response(`Code ${response.status} - new title is "${newTitleOfVideo}"`)
+            logger.synthesia_response(`Code ${response.status} - new title is "${newTitleOfVideo}"`)
         })
         .catch(function (error) {
           logger.error(error);
@@ -398,12 +398,12 @@ async function updateVideo(videoUUID, newTitleOfVideo) {
 }
 
 async function listVideos(uuid) {
-    logger.info(`Sending list request to Synthesia`)
+    logger.user_message(`Request video list from Synthesia`)
     try {
         const response = await axios.get(`https://api.synthesia.io/v2/videos?limit=${uuid}&offset=0`, {
             headers: {
-                accept: 'application/json',
-                'content-type': 'application/json',
+                accept: 'app_sayslication/json',
+                'content-type': 'app_sayslication/json',
                 Authorization: apiKey
             }
         });
@@ -416,13 +416,13 @@ async function listVideos(uuid) {
 
 
         videoListAndIds.forEach(entry => {
-            logger.response(`${entry.index}> ${entry.id} - ${entry.index}> "${entry.title}" (${entry.duration})`)
+            logger.synthesia_response(`${entry.index}> ${entry.id} - ${entry.index}> "${entry.title}" (${entry.duration})`)
         })
 
         return videoListAndIds
 
     } catch (error) {
-        logger.response(`Something wasn't right in the request`)
+        logger.synthesia_response(`Something wasn't right in the request`)
         console.log(error.response.data)
         await delay((300))
         // console.error('Error creating video:', error);
@@ -436,8 +436,8 @@ async function videoList(uuid) {
     try {
         const response = await axios.get(`https://api.synthesia.io/v2/videos?limit=${uuid}&offset=0`, {
             headers: {
-                accept: 'application/json',
-                'content-type': 'application/json',
+                accept: 'app_sayslication/json',
+                'content-type': 'app_sayslication/json',
                 Authorization: apiKey
             }
         });
@@ -451,7 +451,7 @@ async function videoList(uuid) {
         return videoListAndIds
 
     } catch (error) {
-        logger.response(`Something wasn't right in the request`)
+        logger.synthesia_response(`Something wasn't right in the request`)
         console.log(error.response.data)
         await delay((300))
         // console.error('Error creating video:', error);
@@ -490,11 +490,11 @@ switch (instruction) {
         } else {
             const videoListData = await videoList(100)
 
-            logger.info(`Requesting status of ${videoListData[uuid - 1].id} from Synthesia`)
-            const videoInfo = await getVideoStatus(videoListData[uuid - 1].id)
-            logger.response(`Video Title: ${videoInfo.title}`)
+            logger.user_message(`Get status of ${videoListData[uuid - 1].id} from Synthesia`)
+            const videoapp_says = await getVideoStatus(videoListData[uuid - 1].id)
+            logger.synthesia_response(`Video Title: ${videoapp_says.title}`)
             await delay(500)
-            logger.response(`Status is ${videoInfo.status}`)
+            logger.synthesia_response(`Status is ${videoapp_says.status}`)
         }
         break;
     case "/dl":
@@ -504,24 +504,27 @@ switch (instruction) {
             process.exit(1)
         } else {
             const videoListData = await videoList(100)
-            const videoInfo = await getVideoStatus(videoListData[uuid - 1].id)
-            logger.info(`Requesting video data of ${videoListData[uuid - 1].id} from Synthesia`)
-            logger.response(`Video Title: ${videoInfo.title}`)
+            const videoapp_says = await getVideoStatus(videoListData[uuid - 1].id)
+            logger.user_message(`Download ${videoListData[uuid - 1].id} from Synthesia`)
+            await delay(350)
+            logger.app_says(`Requesting video data of ${videoListData[uuid - 1].id} from Synthesia`)
+            await delay(350)
+            logger.synthesia_response(`Video Title: ${videoapp_says.title}`)
             await delay(500)
-            if (videoInfo.status != "complete") {
-                logger.response(`Video status is ${videoInfo.status} - can't download the video yet.`)
+            if (videoapp_says.status != "complete") {
+                logger.error(`Video status is ${videoapp_says.status} - can't download the video yet.`)
                 await delay(1000)
                 process.exit(1)
             } else {
-                logger.response(`Status is ${videoInfo.status}`)
-                logger.response(`Download URL: ${videoInfo.download}`)
-                logger.response(`ID: ${videoInfo.id}`)
+                logger.synthesia_response(`Status is ${videoapp_says.status}`)
+                logger.synthesia_response(`Download URL: ${videoapp_says.download}`)
+                logger.synthesia_response(`ID: ${videoapp_says.id}`)
                 try {
-                    let downloadedVideoFileName = videoInfo.title.replace(/\s+/g, '');
-                    await downloadVideo(videoInfo.download, `${downloadedVideoFileName}.mp4`)
+                    let downloadedVideoFileName = videoapp_says.title.replace(/\s+/g, '');
+                    await downloadVideo(videoapp_says.download, `${downloadedVideoFileName}.mp4`)
                 } catch (error) {
                     logger.warn(`Filename invalid - using UUID instead`)
-                    await downloadVideo(videoInfo.download, `${videoListData[uuid - 1].id}.mp4`)
+                    await downloadVideo(videoapp_says.download, `${videoListData[uuid - 1].id}.mp4`)
                 }
 
 
@@ -535,9 +538,10 @@ switch (instruction) {
             process.exit(1)
         } else {
             const videoListData = await videoList(100)
-            const videoInfo = await getVideoStatus(videoListData[uuid - 1].id)
-            logger.info(`Requesting video data of ${videoListData[uuid - 1].id} from Synthesia`)
-            logger.response(`Video Title: ${videoInfo.title}`)
+            const videoapp_says = await getVideoStatus(videoListData[uuid - 1].id)
+            logger.user_message(`Update ${videoListData[uuid - 1].id}`)
+            logger.app_says(`Requesting video data of ${videoListData[uuid - 1].id} from Synthesia`)
+            logger.synthesia_response(`Video Title: ${videoapp_says.title}`)
             await updateVideo(videoListData[uuid - 1].id, newTitle)
         }
         break;
