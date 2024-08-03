@@ -1,8 +1,8 @@
 {
   "name": "video_creation",
-  "version": "1.1.0",
+  "version": "3.0.0",
   "description": "Video Creator with Synthesia",
-  "main": "app.js",
+  "main": "syn.js",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
