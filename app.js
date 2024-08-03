@@ -28,6 +28,47 @@ const instruction = args[0]
 let uuid = args[1]
 const newTitle = args[2]
 
+async function addApiKeyToEnvFile(apiKey) {
+    const envFilePath = path.resolve(process.cwd(), '.env');
+  
+    let envFileContent = '';
+  
+    // Check if the .env file exists
+    if (fs.existsSync(envFilePath)) {
+      // Read the contents of the .env file
+      envFileContent = fs.readFileSync(envFilePath, 'utf8');
+  
+      // Split the content into lines
+      const lines = envFileContent.split('\n');
+  
+      // Check if the API_KEY exists and update it if it does
+      let apiKeyExists = false;
+      const updatedLines = lines.map(line => {
+        if (line.startsWith('API_KEY=')) {
+          apiKeyExists = true;
+          return `API_KEY=${apiKey}`;
+        }
+        return line;
+      });
+  
+      // If API_KEY does not exist, add it
+      if (!apiKeyExists) {
+        updatedLines.push(`API_KEY=${apiKey}`);
+      }
+  
+      // Join the lines back into a single string
+      envFileContent = updatedLines.join('\n');
+    } else {
+      // Create the .env file with the API_KEY
+      envFileContent = `API_KEY=${apiKey}\n`;
+    }
+  
+    // Write the content back to the .env file
+    fs.writeFileSync(envFilePath, envFileContent, 'utf8');
+    logger.app_says('API Key added to .env file')
+    await delay(100)
+    process.exit(1)
+  }
 
 
 // This function confirms if video should be a test
@@ -371,6 +412,7 @@ async function deleteVideo(videoUUID) {
         });
 }
 
+
 // This function deletes the video using it's UUID
 async function updateVideo(videoUUID, newTitleOfVideo) {
     logger.user_message(`Update title of video ${videoUUID} to "${newTitleOfVideo}"`);
@@ -545,6 +587,16 @@ switch (instruction) {
             await updateVideo(videoListData[uuid - 1].id, newTitle)
         }
         break;
+    case "/a":
+        if (!uuid) {
+            logger.error(`API key is missing.`)
+            await delay(1000)
+            process.exit(1)
+        } else {
+            addApiKeyToEnvFile(uuid)
+        }
+
+    break;
     default:
         processScripts()
         break;
