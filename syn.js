@@ -460,6 +460,7 @@ async function getVideoStatus(videoId) {
             } else {
                 await checkApiKeyIsValid()
                 const synthesiaVideoList = await getVideoList(100)
+                console.log(chalk.white.bgRed(`               DELETE              `))
                 logger.warn(`(${index}) "${synthesiaVideoList[index - 1].title}" marked for deletion.`)
                 await yesOrNo(`Are you sure you want to delete ${synthesiaVideoList[index - 1].id}?`)
                 deleteVideo(synthesiaVideoList[index - 1].id)
