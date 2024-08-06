@@ -8,16 +8,16 @@ const customLevels = {
     fatal: 0,
     error: 1,
     warn: 2,
-    app_says: 3,
-    synthesia_response: 4,
+    info: 3,
+    synthesia: 4,
     user_message: 5
   },
   colors: {
     fatal: 'red',
     error: 'red',
     warn: 'yellow',
-    app_says: 'green',
-    synthesia_response: 'blue',
+    info: 'green',
+    synthesia: 'blue',
     user_message: 'magenta'
   }
 };

@@ -1,5 +1,6 @@
 .env
 downloads
+modules
 node_modules
 .DS_Store
 scripts
