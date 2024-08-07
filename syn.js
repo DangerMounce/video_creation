@@ -416,6 +416,7 @@ async function getVideoStatus(videoId) {
                 logger.synthesia(`(${index}) ${synthesiaVideoList[index - 1].title}`)
                 logger.synthesia(synthesiaVideoList[index - 1].id)
                 logger.synthesia(synthesiaVideoList[index - 1].status)
+                logger.synthesia(synthesiaVideoList[index - 1].description)
                 if (synthesiaVideoList[index - 1].status === 'complete') {
                     logger.synthesia(synthesiaVideoList[index - 1].duration)
                     logger.synthesia(synthesiaVideoList[index - 1].download)
