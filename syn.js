@@ -343,7 +343,7 @@ async function generateSynthesiaPayload(videoFileName, videoScript, testVideo) {
                     scale: 1,
                     style: 'rectangular',
                     seamless: false,
-                    voice: '3243108c-9337-48b0-b288-4f7ca9f2bec1'
+                    voice: '398dc821-2eb9-4d93-9dca-ff6f3165906a'
                 },
                 backgroundSettings: {
                     videoSettings: {
@@ -393,19 +393,50 @@ async function getVideoStatus(videoId) {
         case `-l`:
             if (!index) {
                 index = 100
+            } else if (index === "/progress" || index === "/complete") {
+                let filter = "complete"
+                if (index === "/progress") {
+                    filter = "in_progress"
+                }
+                logger.info(`Filtering by "${filter}"`)
+                await checkApiKeyIsValid();
+                index = 100
+                const synthesiaVideoList = await getVideoList(index);
+                const videoListAndIds = synthesiaVideoList.map((video, index) => ({
+                    index: index + 1,
+                    title: video.title,
+                    id: video.id,
+                    status: video.status,
+                    duration: video.duration
+                }));
+                // videoListAndIds.forEach(entry => {
+                //     logger.synthesia(`${entry.index}> ${entry.id} - ${entry.index}> "${entry.title}" (${entry.status})`)
+                // })
+                const filteredVideoListAndIds = videoListAndIds.filter(video => video.status === filter);
+
+                // Check if there are no results after filtering
+                if (filteredVideoListAndIds.length === 0) {
+                    logger.error('No videos are currently in progress')
+                } else {
+                    filteredVideoListAndIds.forEach(entry => {
+                        logger.synthesia(`${entry.index}> ${entry.id} - ${entry.index}> "${entry.title}" (${entry.status})`);
+                    });
+                }
+            } else {
+                await checkApiKeyIsValid();
+                const synthesiaVideoList = await getVideoList(index);
+                const videoListAndIds = synthesiaVideoList.map((video, index) => ({
+                    index: index + 1,
+                    title: video.title,
+                    id: video.id,
+                    status: video.status,
+                    duration: video.duration
+                }));
+                videoListAndIds.forEach(entry => {
+                    logger.synthesia(`${entry.index}> "${entry.title}" (${entry.status})`)
+                })
             }
-            await checkApiKeyIsValid();
-            const synthesiaVideoList = await getVideoList(index);
-            const videoListAndIds = synthesiaVideoList.map((video, index) => ({
-                index: index + 1,
-                title: video.title,
-                id: video.id,
-                status: video.status,
-                duration: video.duration
-            }));
-            videoListAndIds.forEach(entry => {
-                logger.synthesia(`${entry.index}> ${entry.id} - ${entry.index}> "${entry.title}" (${entry.status})`)
-            })
+
             break;
         case '-i':
             if (!index) {
@@ -419,8 +450,9 @@ async function getVideoStatus(videoId) {
                 logger.synthesia(synthesiaVideoList[index - 1].description)
                 if (synthesiaVideoList[index - 1].status === 'complete') {
                     logger.synthesia(synthesiaVideoList[index - 1].duration)
-                    logger.synthesia(synthesiaVideoList[index - 1].download)
+                    // logger.synthesia(synthesiaVideoList[index - 1].download)
                 }
+                logger.info(`Index - ${index}`)
             }
             break;
         case '-d':
