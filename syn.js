@@ -183,6 +183,38 @@ async function downloadVideo(url, filename) {
     });
 }
 
+async function downloadCaptions(url, filename) {
+    const downloadsFolder = path.join(__dirname, 'downloads');
+
+    if (!fs.existsSync(downloadsFolder)) {
+        fs.mkdirSync(downloadsFolder);
+    }
+
+    const filePath = path.join(downloadsFolder, filename);
+    logger.info(`Downloading VTT Captions`)
+    const response = await axios({
+        url,
+        method: 'GET',
+        responseType: 'stream'
+    });
+    return new Promise((resolve, reject) => {
+        const writer = fs.createWriteStream(filePath);
+        response.data.pipe(writer);
+        let error = null;
+        writer.on('error', err => {
+            error = err;
+            writer.close();
+            reject(err);
+        });
+        writer.on('close', () => {
+            if (!error) {
+                resolve();
+            }
+        });
+        logger.synthesia(`${filename} downloaded.`)
+    });
+}
+
 // This function return an array of objects with the video filename and the script for each file contained in scripts.
 async function getVideoData() {
     const data = await readScripts('scripts')
@@ -450,6 +482,7 @@ async function getVideoStatus(videoId) {
                 logger.synthesia(synthesiaVideoList[index - 1].description)
                 if (synthesiaVideoList[index - 1].status === 'complete') {
                     logger.synthesia(synthesiaVideoList[index - 1].duration)
+                    // logger.synthesia(synthesiaVideoList[index - 1].captions.vtt)
                     // logger.synthesia(synthesiaVideoList[index - 1].download)
                 }
                 logger.info(`Index - ${index}`)
@@ -470,6 +503,7 @@ async function getVideoStatus(videoId) {
                 let nameOfFile = synthesiaVideo.title.replace(/\s+/g, '')
                 logger.info(`filename is "${nameOfFile}"`)
                 await downloadVideo(synthesiaVideo.download, `${nameOfFile}.mp4`)
+                await downloadCaptions(synthesiaVideo.captions.vtt, `${nameOfFile}.vtt`)
             }
             break;
         case '-u':
