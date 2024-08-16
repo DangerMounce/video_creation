@@ -18,7 +18,7 @@ This repository contains a script for creating and downloading videos using the 
 
 2. **Install dependencies**:
    ```sh
-   npm install axios chalk dotenv fs inquirer log-update path url winston
+   npm install axios chalk dotenv fs inquirer log-update path url winston clipboardy
    ```
 
 3. **Create a `.env` file in the root directory and add your Synthesia API key**:

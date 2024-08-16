@@ -8,6 +8,7 @@ import inquirer from 'inquirer';
 import { readdir, readFile } from 'fs/promises';
 import { extname, join } from 'path';
 import logger from "./logger.js";
+import clipboardy from 'clipboardy'
 
 // Helper function to load environment variables
 const loadEnv = () => {
@@ -400,6 +401,11 @@ async function generateSynthesiaPayload(videoFileName, videoScript, testVideo) {
     return data
 }
 
+function copyToClipboard(text) {
+    clipboardy.writeSync(text);
+    logger.info('Embed code copied to clipboard');
+}
+
 // This function gets the status of the video
 async function getVideoStatus(videoId) {
     try {
@@ -480,11 +486,22 @@ async function getVideoStatus(videoId) {
                 logger.synthesia(synthesiaVideoList[index - 1].id)
                 logger.synthesia(synthesiaVideoList[index - 1].status)
                 logger.synthesia(synthesiaVideoList[index - 1].description)
+                logger.synthesia(synthesiaVideoList[index - 1].visibility)
                 if (synthesiaVideoList[index - 1].status === 'complete') {
                     logger.synthesia(synthesiaVideoList[index - 1].duration)
                     // logger.synthesia(synthesiaVideoList[index - 1].captions.vtt)
                     // logger.synthesia(synthesiaVideoList[index - 1].download)
                 }
+                logger.info(`Index - ${index}`)
+            }
+            break;
+        case '-ia':
+            if (!index) {
+                logger.error('Video index is missing')
+            } else {
+                await checkApiKeyIsValid()
+                const synthesiaVideoList = await getVideoList(100)
+                console.log(synthesiaVideoList[index - 1])
                 logger.info(`Index - ${index}`)
             }
             break;
@@ -531,6 +548,20 @@ async function getVideoStatus(videoId) {
                 logger.warn(`(${index}) "${synthesiaVideoList[index - 1].title}" marked for deletion.`)
                 await yesOrNo(`Are you sure you want to delete ${synthesiaVideoList[index - 1].id}?`)
                 deleteVideo(synthesiaVideoList[index - 1].id)
+            }
+            break;
+        case '-e': //embed
+            if (!index) {
+                logger.error('Video index is missing')
+            } else {
+                await checkApiKeyIsValid()
+                const synthesiaVideoList = await getVideoList(100)
+                logger.synthesia(`(${index}) ${synthesiaVideoList[index - 1].title}`)
+                const videoId = synthesiaVideoList[index - 1].id
+                const embedCode = `<div style="position: relative; overflow: hidden; aspect-ratio: 1920/1080"><iframe src="https://share.synthesia.io/embeds/videos/${videoId}" loading="lazy" title="Synthesia video player - Placeholder" allowfullscreen allow="encrypted-media; fullscreen;" style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; border: none; padding: 0; margin: 0; overflow:hidden;"></iframe></div>`
+                copyToClipboard(embedCode)
+                logger.info(embedCode)
+                logger.info(`Embed code copied to clipboard`)
             }
             break;
         default:
