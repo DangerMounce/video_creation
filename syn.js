@@ -348,10 +348,10 @@ async function updateVideo(videoUUID, newTitleOfVideo) {
     logger.synthesia(`${videoUUID} title changed to "${response.title}"`)
 }
 
-async function updateVisbility(videoUUID, visibilityToSet) {
+async function updateVideoToPublic(videoUUID) {
 
     const data = { visibility: visibilityToSet }
-    const response = await makeApiCall("PATCH", `/${videoUUID}`, data)
+    const response = await makeApiCall("PATCH", `/${videoUUID}`, "public")
     logger.synthesia(`${videoUUID} visbility set to "${response.visibility}"`)
 }
 
