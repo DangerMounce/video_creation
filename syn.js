@@ -348,6 +348,13 @@ async function updateVideo(videoUUID, newTitleOfVideo) {
     logger.synthesia(`${videoUUID} title changed to "${response.title}"`)
 }
 
+async function updateVisbility(videoUUID, visibilityToSet) {
+
+    const data = { visibility: visibilityToSet }
+    const response = await makeApiCall("PATCH", `/${videoUUID}`, data)
+    logger.synthesia(`${videoUUID} visbility set to "${response.visibility}"`)
+}
+
 // This function checks for .DS_Store file and deletes it
 async function deleteDSStoreFile(directory) {
     const dsStoreFilePath = path.join(directory, '.DS_Store');
@@ -558,6 +565,7 @@ async function getVideoStatus(videoId) {
                 const synthesiaVideoList = await getVideoList(100)
                 logger.synthesia(`(${index}) ${synthesiaVideoList[index - 1].title}`)
                 const videoId = synthesiaVideoList[index - 1].id
+                await updateVideoToPublic(videoId, "public")
                 const embedCode = `<div style="position: relative; overflow: hidden; aspect-ratio: 1920/1080"><iframe src="https://share.synthesia.io/embeds/videos/${videoId}" loading="lazy" title="Synthesia video player - Placeholder" allowfullscreen allow="encrypted-media; fullscreen;" style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; border: none; padding: 0; margin: 0; overflow:hidden;"></iframe></div>`
                 copyToClipboard(embedCode)
                 logger.info(embedCode)
