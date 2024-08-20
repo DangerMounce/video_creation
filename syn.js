@@ -348,10 +348,10 @@ async function updateVideo(videoUUID, newTitleOfVideo) {
     logger.synthesia(`${videoUUID} title changed to "${response.title}"`)
 }
 
-async function updateVideoToPublic(videoUUID) {
+async function updateVideoVisbility(videoUUID, videoVisbility) {
 
-    const data = { visibility: "public" }
-    const response = await makeApiCall("PATCH", `/${videoUUID}`, "public")
+    const data = { visibility: videoVisbility }
+    const response = await makeApiCall("PATCH", `/${videoUUID}`, data)
     logger.synthesia(`${videoUUID} visbility set to "${response.visibility}"`)
 }
 
@@ -565,11 +565,22 @@ async function getVideoStatus(videoId) {
                 const synthesiaVideoList = await getVideoList(100)
                 logger.synthesia(`(${index}) ${synthesiaVideoList[index - 1].title}`)
                 const videoId = synthesiaVideoList[index - 1].id
-                await updateVideoToPublic(videoId, "public")
+                await updateVideoVisbility(videoId, "public")
                 const embedCode = `<div style="position: relative; overflow: hidden; aspect-ratio: 1920/1080"><iframe src="https://share.synthesia.io/embeds/videos/${videoId}" loading="lazy" title="Synthesia video player - Placeholder" allowfullscreen allow="encrypted-media; fullscreen;" style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; border: none; padding: 0; margin: 0; overflow:hidden;"></iframe></div>`
                 copyToClipboard(embedCode)
                 logger.info(embedCode)
                 logger.info(`Embed code copied to clipboard`)
+            }
+            break;
+            case '-x': //set to private
+            if (!index) {
+                logger.error('Video index is missing')
+            } else {
+                await checkApiKeyIsValid()
+                const synthesiaVideoList = await getVideoList(100)
+                logger.synthesia(`(${index}) ${synthesiaVideoList[index - 1].title}`)
+                const videoId = synthesiaVideoList[index - 1].id
+                await updateVideoVisbility(videoId, "private")
             }
             break;
         default:
