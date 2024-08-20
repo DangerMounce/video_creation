@@ -350,7 +350,7 @@ async function updateVideo(videoUUID, newTitleOfVideo) {
 
 async function updateVideoToPublic(videoUUID) {
 
-    const data = { visibility: visibilityToSet }
+    const data = { visibility: "public" }
     const response = await makeApiCall("PATCH", `/${videoUUID}`, "public")
     logger.synthesia(`${videoUUID} visbility set to "${response.visibility}"`)
 }
